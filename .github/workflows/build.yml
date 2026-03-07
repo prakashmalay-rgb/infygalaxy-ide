@@ -1,0 +1,111 @@
+name: Build Windows Installer
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:   # allows manual trigger from GitHub UI
+
+permissions:
+  contents: write      # needed to create releases & upload assets
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      # ── 1. Checkout code ────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── 2. Setup Node.js ─────────────────────────────────────────
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      # ── 3. Install dependencies ──────────────────────────────────
+      - name: Install dependencies
+        run: npm install
+
+      # ── 4. Inject GitHub OAuth secrets from repo secrets ─────────
+      #       Set these in: GitHub repo → Settings → Secrets → Actions
+      #       GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET
+      - name: Inject OAuth credentials
+        shell: pwsh
+        run: |
+          $file = "src/main.js"
+          $content = Get-Content $file -Raw
+          $id     = "${{ secrets.OAUTH_CLIENT_ID }}"
+          $secret = "${{ secrets.OAUTH_CLIENT_SECRET }}"
+          if ($id) {
+            $content = $content -replace "YOUR_GITHUB_CLIENT_ID",     $id
+            $content = $content -replace "YOUR_GITHUB_CLIENT_SECRET", $secret
+            Set-Content $file $content
+            Write-Host "OAuth credentials injected."
+          } else {
+            Write-Host "No OAuth secrets set — skipping injection."
+          }
+
+      # ── 5. Build Windows .exe ────────────────────────────────────
+      - name: Build Windows installer
+        run: npm run build:win
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # ── 6. Find the .exe ─────────────────────────────────────────
+      - name: Find installer file
+        id: find_exe
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem -Path dist -Filter "*.exe" | Select-Object -First 1
+          echo "EXE_PATH=$($exe.FullName)" >> $env:GITHUB_OUTPUT
+          echo "EXE_NAME=$($exe.Name)"     >> $env:GITHUB_OUTPUT
+          Write-Host "Found: $($exe.FullName)"
+
+      # ── 7. Upload as build artifact (always available) ───────────
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Infygalaxy-IDE-Windows-Installer
+          path: dist/*.exe
+          retention-days: 30
+
+      # ── 8. Create GitHub Release with .exe attached ──────────────
+      - name: Get version from package.json
+        id: get_version
+        shell: pwsh
+        run: |
+          $v = (Get-Content package.json | ConvertFrom-Json).version
+          echo "VERSION=$v" >> $env:GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.get_version.outputs.VERSION }}
+          name: Infygalaxy IDE v${{ steps.get_version.outputs.VERSION }}
+          body: |
+            ## 🌌 Infygalaxy IDE v${{ steps.get_version.outputs.VERSION }}
+
+            **Claude-powered zero-code builder — Windows Desktop App**
+
+            ### Install
+            1. Download **`${{ steps.find_exe.outputs.EXE_NAME }}`** below
+            2. Double-click to install
+            3. Launch from Desktop shortcut or Start Menu
+
+            ### What's included
+            - ✦ Claude AI chat builder
+            - 📁 Multi-project workspace
+            - 👀 Live preview
+            - ⎇ GitHub integration
+            - ↑ One-click deploy instructions
+
+            ---
+            Built automatically by GitHub Actions.
+          files: dist/*.exe
+          draft: false
+          prerelease: false
+          make_latest: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
