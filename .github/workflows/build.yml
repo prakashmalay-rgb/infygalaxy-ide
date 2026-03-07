@@ -23,7 +23,6 @@ jobs:
         with:
           node-version: 20
           cache: npm
-
       # ── 3. Install dependencies ──────────────────────────────────
       - name: Install dependencies
         run: npm install
