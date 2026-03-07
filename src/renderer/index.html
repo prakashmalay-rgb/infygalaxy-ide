@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Infygalaxy IDE</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0a0b14;--surface:#111220;--surface2:#181929;--surface3:#1e2035;
+  --border:#252640;--border2:#2e304f;--accent:#5b6aff;--accent2:#00c9ff;
+  --accent3:#ff6b9d;--green:#00e5a0;--warn:#ffb347;--red:#ff4f6a;
+  --text:#eef0ff;--text2:#9095c0;--text3:#5a5e80;--shadow:0 8px 32px rgba(0,0,0,.4);
+}
+[data-theme="light"] {
+  --bg:#f0f2ff;--surface:#ffffff;--surface2:#f5f6ff;--surface3:#eaecff;
+  --border:#dde0ff;--border2:#c8ccf5;--text:#1a1c35;--text2:#5a5e90;--text3:#9095c0;--shadow:0 8px 32px rgba(91,106,255,.08);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column;font-size:14px}
+.topbar{height:50px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:10px;flex-shrink:0;z-index:20}
+.logo{display:flex;align-items:center;gap:9px;font-weight:800;font-size:17px;letter-spacing:-.5px;text-decoration:none;color:var(--text)}
+.logo-icon{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:15px;box-shadow:0 0 14px rgba(91,106,255,.4)}
+.logo span{background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.topbar-mid{margin:0 auto;display:flex;align-items:center;gap:6px}
+.proj-pill{font-size:13px;font-weight:600;color:var(--text2);background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:4px 12px;cursor:pointer;transition:.15s}
+.proj-pill:hover{border-color:var(--accent);color:var(--text)}
+.topbar-right{display:flex;align-items:center;gap:6px}
+.tb-btn{display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:7px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;transition:.15s}
+.tb-btn:hover{color:var(--text);border-color:var(--accent);background:rgba(91,106,255,.08)}
+.tb-btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;box-shadow:0 4px 16px rgba(91,106,255,.35)}
+.tb-btn.primary:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(91,106,255,.5)}
+.workspace{flex:1;display:flex;overflow:hidden}
+.sidebar{width:230px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.sb-sec{padding:12px;border-bottom:1px solid var(--border)}
+.sb-lbl{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:8px}
+.new-proj{width:100%;padding:8px;background:rgba(91,106,255,.1);border:1px dashed var(--border2);border-radius:8px;color:var(--text2);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;transition:.2s}
+.new-proj:hover{border-color:var(--accent);color:var(--text);background:rgba(91,106,255,.15)}
+.proj-list{flex:1;overflow-y:auto;padding:8px}
+.proj-list::-webkit-scrollbar{width:3px}
+.proj-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.proj-item{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:8px;cursor:pointer;margin-bottom:3px;transition:.15s}
+.proj-item:hover{background:var(--surface3)}
+.proj-item.active{background:rgba(91,106,255,.15);border:1px solid rgba(91,106,255,.3)}
+.proj-emoji{width:32px;height:32px;border-radius:7px;background:var(--surface3);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.proj-meta{flex:1;min-width:0}
+.proj-name{font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.proj-desc{font-size:11px;color:var(--text3);margin-top:1px}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.split{flex:1;display:flex;overflow:hidden}
+.chat-panel{width:400px;flex-shrink:0;display:flex;flex-direction:column;background:var(--surface);border-right:1px solid var(--border)}
+.chat-hdr{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.ai-av{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--accent3));display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.chat-title{font-size:13px;font-weight:700}
+.chat-sub{font-size:11px;color:var(--text3);margin-top:1px}
+.model-sel{background:var(--surface3);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:inherit;font-size:11px;font-weight:600;padding:4px 8px;cursor:pointer;outline:none;margin-left:auto}
+.api-banner{background:rgba(255,179,71,.1);border:1px solid rgba(255,179,71,.3);border-radius:9px;padding:10px 14px;margin:10px 14px 0;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--warn);cursor:pointer;transition:.15s}
+.api-banner:hover{background:rgba(255,179,71,.18)}
+.chat-msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px}
+.chat-msgs::-webkit-scrollbar{width:3px}
+.chat-msgs::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.msg{display:flex;gap:8px;align-items:flex-start}
+.msg.user{flex-direction:row-reverse}
+.msg-av{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;margin-top:2px}
+.msg-av.ai{background:linear-gradient(135deg,var(--accent),var(--accent2))}
+.msg-av.hu{background:var(--surface3);border:1px solid var(--border2)}
+.bubble{max-width:290px;padding:9px 12px;border-radius:11px;font-size:13px;line-height:1.6}
+.bubble.ai{background:var(--surface3);border:1px solid var(--border2);border-bottom-left-radius:3px}
+.bubble.hu{background:linear-gradient(135deg,rgba(91,106,255,.25),rgba(0,201,255,.15));border:1px solid rgba(91,106,255,.3);border-bottom-right-radius:3px}
+.bubble.think{display:flex;align-items:center;gap:8px;color:var(--text2);font-style:italic}
+.dots span{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--accent);margin:0 1px;animation:db .7s infinite ease-in-out}
+.dots span:nth-child(2){animation-delay:.15s}.dots span:nth-child(3){animation-delay:.3s}
+@keyframes db{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+.chips{display:flex;flex-wrap:wrap;gap:5px;padding:0 14px 10px}
+.chip{padding:5px 11px;background:var(--surface3);border:1px solid var(--border2);border-radius:20px;font-size:11px;color:var(--text2);cursor:pointer;transition:.15s}
+.chip:hover{border-color:var(--accent);color:var(--text);background:rgba(91,106,255,.1)}
+.input-area{padding:12px;border-top:1px solid var(--border)}
+.input-wrap{background:var(--surface3);border:1px solid var(--border2);border-radius:11px;padding:9px 11px;display:flex;align-items:flex-end;gap:7px;transition:.2s}
+.input-wrap:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px rgba(91,106,255,.1)}
+.chat-input{flex:1;background:none;border:none;outline:none;color:var(--text);font-family:inherit;font-size:13px;resize:none;max-height:110px;min-height:20px;line-height:1.5}
+.chat-input::placeholder{color:var(--text3)}
+.send-btn{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;box-shadow:0 3px 12px rgba(91,106,255,.4);transition:.15s;flex-shrink:0}
+.send-btn:hover{transform:translateY(-1px);box-shadow:0 5px 18px rgba(91,106,255,.6)}
+.send-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.preview-panel{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.prev-hdr{height:42px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 12px;gap:8px;flex-shrink:0}
+.ptabs{display:flex;gap:3px}
+.ptab{padding:4px 11px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;color:var(--text2);transition:.15s;border:1px solid transparent}
+.ptab:hover{color:var(--text);background:var(--surface3)}
+.ptab.active{background:var(--surface3);color:var(--text);border-color:var(--border2)}
+.prev-url{flex:1;background:var(--surface3);border:1px solid var(--border);border-radius:7px;padding:4px 11px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--text2);display:flex;align-items:center;gap:5px}
+.url-dot{width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0}
+.pctrl{width:26px;height:26px;border-radius:6px;background:none;border:1px solid var(--border2);color:var(--text2);cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;transition:.15s}
+.pctrl:hover{border-color:var(--accent);color:var(--text)}
+.prev-content{flex:1;overflow:hidden;position:relative}
+#preview-iframe{width:100%;height:100%;border:none;background:#fff}
+.welcome{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;padding:40px;text-align:center;position:relative}
+.wglow{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:400px;height:300px;background:radial-gradient(ellipse,rgba(91,106,255,.1) 0%,transparent 70%);pointer-events:none}
+.wtitle{font-size:36px;font-weight:800;letter-spacing:-1px;line-height:1.1}
+.wtitle span{background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.wsub{font-size:15px;color:var(--text2);max-width:420px;line-height:1.6}
+.wgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;width:100%;max-width:460px}
+.wcard{background:var(--surface2);border:1px solid var(--border2);border-radius:11px;padding:14px;cursor:pointer;transition:.2s;display:flex;align-items:flex-start;gap:10px;text-align:left}
+.wcard:hover{border-color:var(--accent);background:rgba(91,106,255,.07);transform:translateY(-2px)}
+.wcard-icon{font-size:20px;flex-shrink:0}
+.wcard-title{font-size:12px;font-weight:700;margin-bottom:2px}
+.wcard-desc{font-size:11px;color:var(--text3);line-height:1.4}
+.code-view{flex:1;overflow:hidden;display:none;flex-direction:column}
+.code-view.show{display:flex}
+.file-tabs{height:35px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:flex-end;padding:0 8px;gap:2px;overflow-x:auto;flex-shrink:0}
+.file-tab{padding:5px 12px;border-radius:5px 5px 0 0;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--text3);cursor:pointer;border:1px solid transparent;border-bottom:none;white-space:nowrap;transition:.1s}
+.file-tab:hover{color:var(--text);background:var(--surface3)}
+.file-tab.active{background:var(--bg);color:var(--text);border-color:var(--border)}
+.code-wrap{flex:1;overflow:auto;background:var(--bg);position:relative}
+.code-wrap::-webkit-scrollbar{width:5px}
+.code-wrap::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+#code-display{padding:18px 22px;font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.8;color:#cdd6f4;white-space:pre;min-height:100%;pointer-events:none}
+#code-textarea{position:absolute;inset:0;width:100%;height:100%;background:transparent;color:transparent;caret-color:var(--accent2);font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.8;padding:18px 22px;border:none;outline:none;resize:none;z-index:2;overflow:auto;tab-size:2;white-space:pre}
+.statusbar{height:24px;background:linear-gradient(90deg,var(--accent),var(--accent2));display:flex;align-items:center;padding:0 14px;gap:14px;font-size:11px;font-weight:600;color:rgba(255,255,255,.85);flex-shrink:0}
+.sb-r{margin-left:auto;display:flex;gap:12px}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);z-index:100;align-items:center;justify-content:center}
+.overlay.open{display:flex}
+.panel{background:var(--surface);border:1px solid var(--border2);border-radius:16px;width:500px;max-width:94vw;max-height:88vh;overflow-y:auto;box-shadow:var(--shadow)}
+.panel::-webkit-scrollbar{width:4px}
+.panel::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.panel-hdr{padding:22px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.panel-title{font-size:18px;font-weight:800}
+.close-x{width:28px;height:28px;border-radius:7px;background:var(--surface3);border:none;color:var(--text2);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:.15s}
+.close-x:hover{background:var(--border2);color:var(--text)}
+.panel-body{padding:20px 24px;display:flex;flex-direction:column;gap:20px}
+.sg{display:flex;flex-direction:column;gap:8px}
+.sg-lbl{font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+.sg-desc{font-size:12px;color:var(--text3);line-height:1.5;margin-top:-4px}
+.sg-input{width:100%;padding:10px 12px;background:var(--surface3);border:1px solid var(--border2);border-radius:9px;color:var(--text);font-family:inherit;font-size:13px;outline:none;transition:.15s}
+.sg-input:focus{border-color:var(--accent)}
+.sg-input::placeholder{color:var(--text3)}
+.theme-row{display:flex;gap:8px}
+.theme-opt{flex:1;padding:10px;border-radius:9px;border:1px solid var(--border2);background:var(--surface3);color:var(--text2);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:.15s;display:flex;align-items:center;justify-content:center;gap:7px}
+.theme-opt:hover{border-color:var(--accent);color:var(--text)}
+.theme-opt.active{border-color:var(--accent);background:rgba(91,106,255,.15);color:var(--text)}
+.model-opts{display:flex;flex-direction:column;gap:6px}
+.model-opt{padding:11px 14px;border-radius:9px;border:1px solid var(--border2);background:var(--surface3);color:var(--text2);font-family:inherit;font-size:13px;cursor:pointer;transition:.15s;display:flex;align-items:center;gap:10px;text-align:left;width:100%}
+.model-opt:hover{border-color:var(--accent);color:var(--text)}
+.model-opt.active{border-color:var(--accent);background:rgba(91,106,255,.15);color:var(--text)}
+.model-nm{font-weight:700;font-size:13px}
+.model-inf{font-size:11px;color:var(--text3);margin-top:1px}
+.badge{margin-left:auto;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px}
+.b-fast{background:rgba(255,179,71,.15);color:var(--warn)}
+.b-pro{background:rgba(91,106,255,.2);color:var(--accent)}
+.save-settings{width:100%;padding:12px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#fff;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(91,106,255,.35);transition:.15s}
+.save-settings:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(91,106,255,.5)}
+.toast{position:fixed;bottom:44px;left:50%;transform:translateX(-50%) translateY(14px);background:var(--surface);border:1px solid var(--green);border-radius:9px;padding:10px 18px;font-size:13px;font-weight:600;color:var(--green);opacity:0;transition:.3s;z-index:200;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.achip{padding:4px 9px;border-radius:6px;font-size:11px;font-weight:600;background:var(--surface2);border:1px solid var(--border2);color:var(--text2);cursor:pointer;font-family:inherit;transition:.15s;margin-top:6px;margin-right:4px;display:inline-block}
+.achip:hover{border-color:var(--accent);color:var(--text)}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a class="logo" href="#"><div class="logo-icon">🌌</div>Infy<span>galaxy</span></a>
+  <div class="topbar-mid"><div class="proj-pill" id="proj-pill" onclick="newProject()">New Project ▾</div></div>
+  <div class="topbar-right">
+    <button class="tb-btn" onclick="toggleCode()" id="code-btn">⟨/⟩ Code</button>
+    <button class="tb-btn" onclick="downloadProject()">⬇ Download</button>
+    <button class="tb-btn" onclick="openInTab()">⤢ Preview</button>
+    <button class="tb-btn" onclick="openSettings()">⚙ Settings</button>
+    <button class="tb-btn primary" onclick="focusInput()">✦ Build</button>
+  </div>
+</div>
+
+<div class="workspace">
+  <div class="sidebar">
+    <div class="sb-sec">
+      <div class="sb-lbl">Projects</div>
+      <button class="new-proj" onclick="newProject()">＋ New Project</button>
+    </div>
+    <div class="proj-list" id="proj-list"></div>
+  </div>
+
+  <div class="main">
+    <div class="split">
+      <div class="chat-panel">
+        <div class="chat-hdr">
+          <div class="ai-av">✦</div>
+          <div><div class="chat-title">Claude AI Builder</div><div class="chat-sub" id="chat-sub">Add API key in Settings to start</div></div>
+          <select class="model-sel" id="model-sel" onchange="onModelChange()">
+            <option value="claude-haiku-4-5-20251001">⚡ Haiku 4.5</option>
+            <option value="claude-sonnet-4-5" selected>✦ Sonnet 4.5</option>
+            <option value="claude-opus-4-5">👑 Opus 4.5</option>
+          </select>
+        </div>
+
+        <div class="api-banner" id="api-banner" onclick="openSettings()">
+          ⚠️ No API key — click here to add your Claude API key and start building!
+        </div>
+
+        <div class="chat-msgs" id="chat-msgs">
+          <div class="msg"><div class="msg-av ai">✦</div>
+            <div class="bubble ai">👋 Welcome to <strong>Infygalaxy IDE</strong>!<br><br>
+            I'm Claude — your AI builder. Describe anything you want and I'll build it.<br><br>
+            <strong>First:</strong> Click ⚙ Settings → paste your Claude API key → Save!</div>
+          </div>
+        </div>
+
+        <div class="chips" id="chips">
+          <div class="chip" onclick="useChip('Build a beautiful landing page for a SaaS startup')">🌐 Landing page</div>
+          <div class="chip" onclick="useChip('Build an analytics dashboard with charts and KPIs')">📊 Dashboard</div>
+          <div class="chip" onclick="useChip('Build a contact form with validation and nice UI')">📝 Contact form</div>
+          <div class="chip" onclick="useChip('Build a product pricing page with 3 tiers')">🛒 Pricing page</div>
+          <div class="chip" onclick="useChip('Build a portfolio website for a designer')">🎨 Portfolio</div>
+          <div class="chip" onclick="useChip('Build a to-do app with local storage')">✅ Todo app</div>
+        </div>
+
+        <div class="input-area">
+          <div class="input-wrap">
+            <textarea class="chat-input" id="chat-input" placeholder="Describe what you want to build…" rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+            <button class="send-btn" id="send-btn" onclick="sendMsg()">→</button>
+          </div>
+          <div style="font-size:11px;color:var(--text3);margin-top:6px;text-align:center">Your API key stays on this device only</div>
+        </div>
+      </div>
+
+      <div class="preview-panel">
+        <div class="prev-hdr">
+          <div class="ptabs">
+            <div class="ptab active" onclick="switchTab('preview',this)">Preview</div>
+            <div class="ptab" onclick="switchTab('code',this)">Code</div>
+          </div>
+          <div class="prev-url"><div class="url-dot"></div><span id="prev-url">infygalaxy://new-project</span></div>
+          <div style="display:flex;gap:5px">
+            <button class="pctrl" onclick="refreshPreview()">↺</button>
+            <button class="pctrl" onclick="openInTab()">⤢</button>
+            <button class="pctrl" onclick="mobileView()">📱</button>
+          </div>
+        </div>
+
+        <div class="prev-content" id="prev-content">
+          <div id="welcome" class="welcome">
+            <div class="wglow"></div>
+            <div class="wtitle">Build anything.<br><span>No code needed.</span></div>
+            <div class="wsub">Describe your idea. Claude builds a fully working website, app, or tool — instantly.</div>
+            <div class="wgrid">
+              <div class="wcard" onclick="useChip('Build a beautiful SaaS landing page for Infygalaxy')"><div class="wcard-icon">🌐</div><div><div class="wcard-title">Landing Page</div><div class="wcard-desc">Startup or product site</div></div></div>
+              <div class="wcard" onclick="useChip('Build an analytics dashboard with charts and KPI cards')"><div class="wcard-icon">📊</div><div><div class="wcard-title">Dashboard</div><div class="wcard-desc">Charts and data visualization</div></div></div>
+              <div class="wcard" onclick="useChip('Build a functional to-do app with local storage')"><div class="wcard-icon">✅</div><div><div class="wcard-title">Web App</div><div class="wcard-desc">Interactive tools and apps</div></div></div>
+              <div class="wcard" onclick="useChip('Build a portfolio for a UI/UX designer with project gallery')"><div class="wcard-icon">🎨</div><div><div class="wcard-title">Portfolio</div><div class="wcard-desc">Showcase your work</div></div></div>
+            </div>
+          </div>
+          <iframe id="preview-iframe" style="display:none;width:100%;height:100%;border:none"></iframe>
+        </div>
+
+        <div class="code-view" id="code-view">
+          <div class="file-tabs" id="file-tabs"></div>
+          <div class="code-wrap">
+            <pre id="code-display">// Your generated code will appear here</pre>
+            <textarea id="code-textarea" spellcheck="false" oninput="onCodeEdit(this)"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="statusbar">
+  <span>🌌 Infygalaxy IDE</span>
+  <span id="sb-model">✦ Sonnet 4.5</span>
+  <span id="sb-proj">📁 New Project</span>
+  <div class="sb-r"><span id="sb-files">0 files</span><span id="sb-status">● Ready</span></div>
+</div>
+
+<!-- SETTINGS -->
+<div class="overlay" id="settings-ov" onclick="ovClick(event,'settings-ov')">
+  <div class="panel">
+    <div class="panel-hdr"><div class="panel-title">⚙ Settings</div><button class="close-x" onclick="closeSettings()">✕</button></div>
+    <div class="panel-body">
+      <div class="sg">
+        <div class="sg-lbl">Claude API Key</div>
+        <div class="sg-desc">Get your key at <strong>console.anthropic.com</strong> → API Keys. Stored only on this device. <em>Note: Claude Pro subscription ≠ API access. You need a separate API key.</em></div>
+        <input type="password" class="sg-input" id="api-input" placeholder="sk-ant-api03-..." autocomplete="off">
+      </div>
+      <div class="sg">
+        <div class="sg-lbl">Theme</div>
+        <div class="theme-row">
+          <button class="theme-opt active" id="t-dark" onclick="setTheme('dark')">🌙 Dark</button>
+          <button class="theme-opt" id="t-light" onclick="setTheme('light')">☀️ Light</button>
+        </div>
+      </div>
+      <div class="sg">
+        <div class="sg-lbl">AI Model</div>
+        <div class="sg-desc">Haiku is fastest and cheapest. Sonnet is the best balance. Opus is most powerful.</div>
+        <div class="model-opts">
+          <button class="model-opt" id="m-haiku" onclick="setModel('claude-haiku-4-5-20251001')">
+            <span style="font-size:18px">⚡</span>
+            <div><div class="model-nm">Claude Haiku 4.5</div><div class="model-inf">Fastest & cheapest — good for simple tasks</div></div>
+            <span class="badge b-fast">FAST</span>
+          </button>
+          <button class="model-opt active" id="m-sonnet" onclick="setModel('claude-sonnet-4-5')">
+            <span style="font-size:18px">✦</span>
+            <div><div class="model-nm">Claude Sonnet 4.5</div><div class="model-inf">Best balance of speed and quality</div></div>
+            <span class="badge b-pro">RECOMMENDED</span>
+          </button>
+          <button class="model-opt" id="m-opus" onclick="setModel('claude-opus-4-5')">
+            <span style="font-size:18px">👑</span>
+            <div><div class="model-nm">Claude Opus 4.5</div><div class="model-inf">Most powerful — best for complex projects</div></div>
+            <span class="badge b-pro">MOST POWERFUL</span>
+          </button>
+        </div>
+      </div>
+      <button class="save-settings" onclick="saveSettings()">✓ Save Settings</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const S={apiKey:'',model:'claude-sonnet-4-5',theme:'dark',files:{},history:[],activeProject:'New Project',projects:{},isBuilding:false,editingFile:null,showCode:false,mobile:false};
+const MODELS={'claude-haiku-4-5-20251001':'Haiku 4.5','claude-sonnet-4-5':'Sonnet 4.5','claude-opus-4-5':'Opus 4.5'};
+const EMOJIS=['🌐','📊','✨','⚡','🎨','📝','🛒','🚀','💡','🔧'];
+const SYSTEM=`You are Claude, the AI builder inside Infygalaxy IDE.
+When asked to build or modify, respond ONLY with valid JSON (no markdown fences):
+{"title":"...","description":"...","files":{"index.html":"<FULL HTML>"},"steps":["..."],"message":"..."}
+Rules: HTML must be 100% self-contained (all CSS/JS inline, CDN ok). Make it beautiful and functional. For edits return the FULL updated file. Never output anything outside the JSON.`;
+
+function init(){
+  S.apiKey=localStorage.getItem('ig_key')||'';
+  S.model=localStorage.getItem('ig_model')||'claude-sonnet-4-5';
+  S.theme=localStorage.getItem('ig_theme')||'dark';
+  applyTheme(S.theme);
+  document.getElementById('model-sel').value=S.model;
+  document.getElementById('sb-model').textContent='✦ '+MODELS[S.model];
+  updateBanner();
+  renderProjList();
+  if(window.infyAPI){
+    window.infyAPI.store.get('apiKey').then(k=>{if(k&&!S.apiKey){S.apiKey=k;updateBanner();}});
+    window.infyAPI.menu?.onNewProject?.(newProject);
+    window.infyAPI.menu?.onDownload?.(downloadProject);
+  }
+}
+
+function updateBanner(){
+  const b=document.getElementById('api-banner'),s=document.getElementById('chat-sub');
+  if(S.apiKey){b.style.display='none';s.textContent='Ready — describe what you want to build';}
+  else{b.style.display='flex';s.textContent='Add API key in Settings to start';}
+}
+
+function handleKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}}
+function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,110)+'px';}
+function focusInput(){document.getElementById('chat-input').focus();}
+function useChip(t){document.getElementById('chat-input').value=t;sendMsg();}
+
+function addMsg(role,html){
+  const w=document.getElementById('chat-msgs');
+  const d=document.createElement('div');d.className='msg'+(role==='user'?' user':'');
+  const a=document.createElement('div');a.className='msg-av '+(role==='user'?'hu':'ai');a.textContent=role==='user'?'👤':'✦';
+  const b=document.createElement('div');b.className='bubble '+(role==='user'?'hu':'ai');b.innerHTML=html;
+  d.appendChild(a);d.appendChild(b);w.appendChild(d);w.scrollTop=9999;return b;
+}
+function addThinking(){
+  const w=document.getElementById('chat-msgs');
+  const d=document.createElement('div');d.className='msg';d.id='thinking';
+  d.innerHTML='<div class="msg-av ai">✦</div><div class="bubble ai think">Building<div class="dots"><span></span><span></span><span></span></div></div>';
+  w.appendChild(d);w.scrollTop=9999;
+}
+function removeThinking(){const t=document.getElementById('thinking');if(t)t.remove();}
+
+async function sendMsg(){
+  const input=document.getElementById('chat-input');
+  const prompt=input.value.trim();
+  if(!prompt||S.isBuilding)return;
+  if(!S.apiKey){openSettings();showToast('⚠️ Add your API key in Settings first!');return;}
+  document.getElementById('chips').style.display='none';
+  addMsg('user',esc(prompt));
+  input.value='';input.style.height='auto';
+  S.isBuilding=true;document.getElementById('send-btn').disabled=true;
+  addThinking();setStatus('⚡ Building…');
+
+  let userContent=prompt;
+  if(Object.keys(S.files).length){
+    const code=S.files['index.html']||Object.values(S.files)[0]||'';
+    userContent+='\n\nCurrent code:\n'+code.slice(0,14000);
+  }
+  S.history.push({role:'user',content:userContent});
+  if(S.history.length>20)S.history=S.history.slice(-20);
+
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':S.apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:S.model,max_tokens:8000,system:SYSTEM,messages:S.history})
+    });
+    if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e.error?.message||`API error ${res.status}`);}
+    const data=await res.json();
+    const raw=data.content.map(b=>b.text||'').join('');
+    S.history.push({role:'assistant',content:raw});
+
+    let parsed;
+    try{const c=raw.replace(/^```(?:json)?\s*/,'').replace(/\s*```\s*$/,'').trim();parsed=JSON.parse(c);}
+    catch(e){const m=raw.match(/\{[\s\S]*\}/);if(m){try{parsed=JSON.parse(m[0]);}catch(e2){throw new Error('Could not parse response');}}else throw new Error('Unexpected response format');}
+
+    removeThinking();
+    const steps=(parsed.steps||['Analysed','Coded','Styled']).map(s=>`<div style="display:flex;align-items:center;gap:7px;padding:3px 0;font-size:12px;color:var(--text2)"><span style="color:var(--green)">✓</span>${esc(s)}</div>`).join('');
+    addMsg('ai',`✅ <strong>${esc(parsed.title||'Done')}</strong><br><span style="color:var(--text2);font-size:12px">${esc(parsed.description||'')}</span>
+      <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:9px;padding:10px;margin-top:8px">
+        <div style="font-size:11px;font-weight:700;color:var(--accent2);margin-bottom:6px">⚡ Built</div>${steps}</div>
+      ${parsed.message?`<div style="margin-top:8px;font-size:12px">${esc(parsed.message)}</div>`:''}
+      <div style="margin-top:8px"><button class="achip" onclick="downloadProject()">⬇ Download</button><button class="achip" onclick="copyCode()">⎘ Copy</button><button class="achip" onclick="openInTab()">⤢ Open Tab</button></div>`);
+
+    S.files=parsed.files||{};
+    const html=S.files['index.html']||Object.values(S.files)[0];
+    renderPreview(html);renderFileTabs(S.files);updateSB(parsed.title||S.activeProject);
+  }catch(err){
+    removeThinking();S.history.pop();
+    let hint='Try rephrasing your request.';
+    if(err.message.includes('401')||err.message.includes('authentication'))hint='⚠️ Invalid API key. Check Settings.';
+    else if(err.message.includes('429'))hint='⚠️ Rate limit hit. Wait and try again.';
+    else if(err.message.includes('credit')||err.message.includes('billing'))hint='⚠️ API credits depleted. Check console.anthropic.com';
+    addMsg('ai',`⚠️ <strong>Error</strong><br><span style="color:var(--text2);font-size:12px">${esc(err.message)}</span><br><span style="font-size:12px;color:var(--warn)">${hint}</span>`);
+    setStatus('● Error');
+  }
+  S.isBuilding=false;document.getElementById('send-btn').disabled=false;
+}
+
+function renderPreview(html){
+  if(!html)return;
+  document.getElementById('welcome').style.display='none';
+  const iframe=document.getElementById('preview-iframe');
+  iframe.style.display='block';iframe.srcdoc=html;
+  document.getElementById('prev-url').textContent='infygalaxy://preview/'+Math.random().toString(36).slice(2,8);
+}
+function refreshPreview(){const i=document.getElementById('preview-iframe');if(!i.srcdoc){showToast('⚠️ Build something first!');return;}const s=i.srcdoc;i.srcdoc='';setTimeout(()=>{i.srcdoc=s;},80);showToast('↺ Refreshed');}
+function openInTab(){const h=S.files['index.html']||Object.values(S.files)[0];if(!h){showToast('⚠️ Build something first!');return;}const b=new Blob([h],{type:'text/html'});window.open(URL.createObjectURL(b),'_blank');}
+function mobileView(){const i=document.getElementById('preview-iframe');S.mobile=!S.mobile;if(S.mobile){i.style.cssText='width:390px;height:844px;border:none;margin:20px auto;display:block;border-radius:14px;box-shadow:0 0 0 8px var(--surface3)';showToast('📱 Mobile view');}else{i.style.cssText='width:100%;height:100%;border:none;display:block';showToast('🖥 Desktop view');}}
+
+function renderFileTabs(files){
+  const tabs=document.getElementById('file-tabs');tabs.innerHTML='';
+  Object.keys(files).forEach((name,i)=>{
+    const t=document.createElement('div');t.className='file-tab'+(i===0?' active':'');t.textContent=name;
+    t.onclick=()=>{document.querySelectorAll('.file-tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');openFile(name);};
+    tabs.appendChild(t);
+  });
+  if(Object.keys(files).length)openFile(Object.keys(files)[0]);
+}
+function openFile(name){S.editingFile=name;const c=S.files[name]||'';document.getElementById('code-textarea').value=c;document.getElementById('code-display').textContent=c;}
+function onCodeEdit(el){if(!S.editingFile)return;S.files[S.editingFile]=el.value;document.getElementById('code-display').textContent=el.value;clearTimeout(window._pt);window._pt=setTimeout(()=>renderPreview(el.value),900);}
+function switchTab(tab,el){document.querySelectorAll('.ptab').forEach(t=>t.classList.remove('active'));el.classList.add('active');const pc=document.getElementById('prev-content'),cv=document.getElementById('code-view');if(tab==='preview'){pc.style.display='';cv.classList.remove('show');S.showCode=false;}else{pc.style.display='none';cv.classList.add('show');S.showCode=true;}}
+function toggleCode(){S.showCode=!S.showCode;const pc=document.getElementById('prev-content'),cv=document.getElementById('code-view'),btn=document.getElementById('code-btn');if(S.showCode){pc.style.display='none';cv.classList.add('show');btn.textContent='⬜ Preview';document.querySelectorAll('.ptab').forEach((t,i)=>t.classList.toggle('active',i===1));}else{pc.style.display='';cv.classList.remove('show');btn.textContent='⟨/⟩ Code';document.querySelectorAll('.ptab').forEach((t,i)=>t.classList.toggle('active',i===0));}}
+
+function copyCode(){const c=S.files[S.editingFile||'index.html']||Object.values(S.files)[0];if(!c){showToast('⚠️ Nothing to copy');return;}navigator.clipboard.writeText(c).then(()=>showToast('⎘ Copied!')).catch(()=>showToast('⎘ Copied!'));}
+async function downloadProject(){const h=S.files['index.html']||Object.values(S.files)[0];if(!h){showToast('⚠️ Build something first!');return;}const n=S.activeProject.toLowerCase().replace(/\s+/g,'-');if(window.infyAPI){const r=await window.infyAPI.file.save({defaultName:n+'.html',content:h});if(r.saved)showToast('⬇ Saved!');}else{const b=new Blob([h],{type:'text/html'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=n+'.html';a.click();showToast('⬇ Downloaded!');}}
+
+function renderProjList(){
+  const list=document.getElementById('proj-list');list.innerHTML='';
+  const names=Object.keys(S.projects);
+  if(!names.length){const d=document.createElement('div');d.className='proj-item active';d.innerHTML='<div class="proj-emoji">🌌</div><div class="proj-meta"><div class="proj-name">New Project</div><div class="proj-desc">0 files</div></div>';list.appendChild(d);return;}
+  names.forEach(name=>{
+    const p=S.projects[name];const d=document.createElement('div');
+    d.className='proj-item'+(name===S.activeProject?' active':'');
+    d.innerHTML=`<div class="proj-emoji">${p.emoji}</div><div class="proj-meta"><div class="proj-name">${esc(name)}</div><div class="proj-desc">${Object.keys(p.files||{}).length} files</div></div>`;
+    d.onclick=()=>loadProject(name,d);list.appendChild(d);
+  });
+}
+function loadProject(name,el){
+  saveCurrent();document.querySelectorAll('.proj-item').forEach(p=>p.classList.remove('active'));el.classList.add('active');
+  S.activeProject=name;const p=S.projects[name];S.files={...(p.files||{})};S.history=[...(p.history||[])];
+  document.getElementById('proj-pill').textContent=name+' ▾';document.getElementById('sb-proj').textContent='📁 '+name;
+  if(Object.keys(S.files).length){renderPreview(S.files['index.html']||Object.values(S.files)[0]);renderFileTabs(S.files);}
+  else{document.getElementById('preview-iframe').style.display='none';document.getElementById('welcome').style.display='';}
+  updateSB(name);
+}
+function saveCurrent(){if(S.activeProject){if(!S.projects[S.activeProject])S.projects[S.activeProject]={emoji:'🌌',files:{},history:[]};S.projects[S.activeProject].files={...S.files};S.projects[S.activeProject].history=[...S.history];}}
+function newProject(){
+  const name=prompt('Project name:','Project '+(Object.keys(S.projects).length+1));
+  if(!name||!name.trim())return;saveCurrent();
+  S.projects[name]={emoji:EMOJIS[Math.floor(Math.random()*EMOJIS.length)],files:{},history:[]};
+  S.activeProject=name;S.files={};S.history=[];
+  document.getElementById('proj-pill').textContent=name+' ▾';document.getElementById('sb-proj').textContent='📁 '+name;
+  document.getElementById('preview-iframe').style.display='none';document.getElementById('welcome').style.display='';
+  document.getElementById('chips').style.display='flex';document.getElementById('file-tabs').innerHTML='';
+  renderProjList();updateSB(name);
+}
+
+function openSettings(){
+  document.getElementById('api-input').value=S.apiKey;
+  document.getElementById('settings-ov').classList.add('open');
+  document.getElementById('t-dark').classList.toggle('active',S.theme==='dark');
+  document.getElementById('t-light').classList.toggle('active',S.theme==='light');
+  ['haiku','sonnet','opus'].forEach(m=>document.getElementById('m-'+m).classList.remove('active'));
+  if(S.model.includes('haiku'))document.getElementById('m-haiku').classList.add('active');
+  else if(S.model.includes('opus'))document.getElementById('m-opus').classList.add('active');
+  else document.getElementById('m-sonnet').classList.add('active');
+}
+function closeSettings(){document.getElementById('settings-ov').classList.remove('open');}
+function saveSettings(){
+  S.apiKey=document.getElementById('api-input').value.trim();
+  localStorage.setItem('ig_key',S.apiKey);localStorage.setItem('ig_model',S.model);localStorage.setItem('ig_theme',S.theme);
+  if(window.infyAPI){window.infyAPI.store.set('apiKey',S.apiKey);window.infyAPI.store.set('theme',S.theme);}
+  updateBanner();closeSettings();showToast('✓ Settings saved!');
+}
+function setTheme(t){S.theme=t;applyTheme(t);document.getElementById('t-dark').classList.toggle('active',t==='dark');document.getElementById('t-light').classList.toggle('active',t==='light');}
+function applyTheme(t){document.documentElement.setAttribute('data-theme',t);}
+function setModel(m){S.model=m;document.getElementById('model-sel').value=m;document.getElementById('sb-model').textContent='✦ '+MODELS[m];['haiku','sonnet','opus'].forEach(x=>document.getElementById('m-'+x).classList.remove('active'));if(m.includes('haiku'))document.getElementById('m-haiku').classList.add('active');else if(m.includes('opus'))document.getElementById('m-opus').classList.add('active');else document.getElementById('m-sonnet').classList.add('active');}
+function onModelChange(){S.model=document.getElementById('model-sel').value;document.getElementById('sb-model').textContent='✦ '+MODELS[S.model];}
+function ovClick(e,id){if(e.target.id===id)document.getElementById(id).classList.remove('open');}
+
+function updateSB(title){const n=Object.keys(S.files).length;document.getElementById('sb-files').textContent=n+' file'+(n!==1?'s':'');S.activeProject=title;document.getElementById('proj-pill').textContent=title+' ▾';document.getElementById('sb-proj').textContent='📁 '+title;setStatus('✓ Built');saveCurrent();renderProjList();}
+function setStatus(msg){const el=document.getElementById('sb-status');el.textContent=msg;}
+function showToast(msg){const t=document.getElementById('toast');t.innerHTML=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),3000);}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+init();
+</script>
+</body>
+</html>
